@@ -136,7 +136,7 @@ def als(X, rank, **kwargs):
     fit = 0
     exectimes = []
     for itr in range(maxiter):
-        tic = time.clock()
+        tic = time.time()
         fitold = fit
 
         for n in range(N):
@@ -152,6 +152,7 @@ def als(X, rank, **kwargs):
                 lmbda = Unew.max(axis=0)
                 lmbda[lmbda < 1] = 1
             U[n] = Unew / lmbda
+        exectimes.append(time.time() - tic)
 
         P = ktensor(U, lmbda)
         if fit_method == 'full':
@@ -160,7 +161,6 @@ def als(X, rank, **kwargs):
         else:
             fit = itr
         fitchange = abs(fitold - fit)
-        exectimes.append(time.clock() - tic)
         _log.debug(
             '[%3d] fit: %.5f | delta: %7.1e | secs: %.5f' %
             (itr, fit, fitchange, exectimes[-1])
