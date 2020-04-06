@@ -83,6 +83,8 @@ def hooi(X, rank, **kwargs):
     maxIter = kwargs.pop('maxIter', __DEF_MAXITER)
     conv = kwargs.pop('conv', __DEF_CONV)
     dtype = kwargs.pop('dtype', X.dtype)
+    return_time = kwargs.pop('return_time', False)
+
     if not len(kwargs) == 0:
         raise ValueError('Unknown keywords (%s)' % (kwargs.keys()))
 
@@ -96,7 +98,7 @@ def hooi(X, rank, **kwargs):
     fit = 0
     exectimes = []
     for itr in range(maxIter):
-        tic = time.clock()
+        tic = time.time()
         fitold = fit
 
         for n in range(ndims):
@@ -106,13 +108,13 @@ def hooi(X, rank, **kwargs):
         # compute core tensor to get fit
         core = ttm(Utilde, U, n, transp=True)
 
+        exectimes.append(time.time() - tic)
+
         # since factors are orthonormal, compute fit on core tensor
         normresidual = sqrt(normX ** 2 - norm(core) ** 2)
-
         # fraction explained by model
         fit = 1 - (normresidual / normX)
         fitchange = abs(fitold - fit)
-        exectimes.append(time.clock() - tic)
 
         _log.debug(
             '[%3d] fit: %.5f | delta: %7.1e | secs: %.5f'
@@ -120,7 +122,10 @@ def hooi(X, rank, **kwargs):
         )
         if itr > 1 and fitchange < conv:
             break
-    return core, U
+    if return_time:
+        return core, U, exectimes
+    else:
+        return core, U
 
 def hosvd(X, rank, dims=None, dtype=None, compute_core=True):
     U = [None for _ in range(X.ndim)]
