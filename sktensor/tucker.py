@@ -98,17 +98,19 @@ def hooi(X, rank, **kwargs):
     fit = 0
     exectimes = []
     for itr in range(maxIter):
-        tic = time.time()
+        dt = 0.
         fitold = fit
 
         for n in range(ndims):
+            tic = time.time()
             Utilde = ttm(X, U, n, transp=True, without=True)
+            dt += time.time() - tic
             U[n] = nvecs(Utilde, n, rank[n])
 
         # compute core tensor to get fit
         core = ttm(Utilde, U, n, transp=True)
 
-        exectimes.append(time.time() - tic)
+        exectimes.append(dt)
 
         # since factors are orthonormal, compute fit on core tensor
         normresidual = sqrt(normX ** 2 - norm(core) ** 2)
